@@ -3,6 +3,23 @@
 import os
 import sys
 import json
+
+# Fix Windows console encoding BEFORE any other imports that might print
+if sys.platform == 'win32':
+    import ctypes
+    import msvcrt
+    # Set console to UTF-8 mode
+    try:
+        ctypes.windll.kernel32.SetConsoleOutputCP(65001)
+        ctypes.windll.kernel32.SetConsoleCP(65001)
+        # Reconfigure stdout/stderr for UTF-8
+        if sys.stdout:
+            sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        if sys.stderr:
+            sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+
 from logo import print_logo, version
 from colorama import Fore, Style, init
 import locale
@@ -15,12 +32,13 @@ import re
 
 # Only import windll on Windows systems
 if platform.system() == 'Windows':
-    import ctypes
-    # Only import windll on Windows systems
     from ctypes import windll
 
-# Initialize colorama
-init()
+# Initialize colorama with convert=False to avoid encoding issues on Windows
+if platform.system() == 'Windows':
+    init(convert=False, strip=False)
+else:
+    init()
 
 # Define emoji and color constants
 EMOJI = {
